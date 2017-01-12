@@ -1,0 +1,63 @@
+Author:  Matt Fox
+Email:   matthewmfox@gmail.com
+Date:    4.13.15
+
+
+////////////////////////////////////////////////////////////////////////////
+
+
+This ReadMe give some instructions on working with the functional and timing models that I built for my thesis.  If you have any questions that are not answered here, don't hesitate to email me at the address at the top!
+
+1. Add New Module Type
+2. Add New TIA Instruction
+3. Change Cycle Times
+
+
+
+////////////////////////////////////////////////////////////////////////////
+
+1.  Add New Module Type
+
+If you want to add a new module type, you should take a look at skeleton.cpp and skeleton.h.  These are some skeleton modules that show the basic module layout.
+You will also want to include your files at the top of timingModel.h so that they get compiled along with all other modules.
+
+Finally, to add it to the normal running procedure of the timing model, you will want to add it to the update loop.  To do this, you must first make a vector that holds
+all of the instances of your module that are used within the timing model.  This will allow us to keep track of them and to run schedule, execute, and commit methods
+on the modules.  Next, you want to go to the end of the timing model, and add a loop over this vector that tries to run the schedule, execute, and commit methods on each 
+instance.
+
+Next, you will want to add cycle time information so that the timing model still correctly interprets your command.  To do this, you will add a new line to the end of 
+cycleTimes.csv that includes the times on a per instruction basis.  You will then need to find out the index into the vector that is produced by interpreting the csv
+file.  The way that I have done this is by printing out the cycle times and matching them to the csv file.  The code for printing out this information is commented at 
+the top of the timing model.  After you find out which index is correct for schedule and commit, you should define variables at the top of the file to refer
+to these times within the timing model.  For each instruction within your module, you should create a map from the instruction to the index for the execute time.  This
+will allow us to quickly find the cycle time from a module, instruction pair.  
+
+Finally, you want to add these times to the logic of deciding the length of a loop.  This just means that you need to add your module to the comparison that happens at the
+end of a normal loop of the timing model.  You will first calculate the total number of cycles used by your module, then compare that to cycleTime to see if your module is
+the limiting factor on a given loop.
+
+
+
+////////////////////////////////////////////////////////////////////////////
+
+2. Add New TIA Instruction
+
+Adding a new TIA instruction is a fairly simple process.  First, you want to define the instruction in the enum that is located in baseclass.h and assign it to some integer 
+so that it can be passed through a latency-insensitive channel.  After this, you want to go to tia.cpp and add the correct behavior under the execute switch statement.
+After you do this, you should add the correct behavior to the switch statment in the commit stage of tia.cpp.
+
+Finally, you should define the number of cycles that this instruction takes to process for the timing model.  This can be done by adding a line to the END of cycleTimes.csv.  
+Adding to the end is imperative so that the indexes used for the current instructions do not get messed up.  Finally, you want to figure out the index of the execute time for
+that instruction by printing out the timing numbers and index information using the commented code at the top of timingModel.cpp.  Once you have this, add the proper index to
+the tia map that will go from your instruction to the index that holds your cycle time information.  After this, you should be good to go!
+
+
+
+////////////////////////////////////////////////////////////////////////////
+
+3. Change Cycle Times
+
+Changing cycle times on an existing instruction is extremely simple.  To change the times, you simply open up cycleTimes.csv and change the value corresponding to the correct 
+instruction in the execute column.  Once this file is saved, the next time that the timing model is run, you will see updated timing information.  
+
